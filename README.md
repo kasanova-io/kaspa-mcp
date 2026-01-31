@@ -40,8 +40,8 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 {
   "mcpServers": {
     "kaspa": {
-      "command": "node",
-      "args": ["/path/to/kaspa-mcp/dist/index.js"],
+      "command": "npx",
+      "args": ["kaspa-mcp"],
       "env": {
         "KASPA_MNEMONIC": "your twenty four word mnemonic phrase here ...",
         "KASPA_NETWORK": "mainnet"
@@ -107,7 +107,7 @@ Get transaction details including inputs and outputs.
 
 ## Example
 
-![Demo of kaspa-mcp in Claude Code](assets/demo.png)
+![Demo of kaspa-mcp in Claude Code](https://raw.githubusercontent.com/kasanova-io/kaspa-mcp/main/assets/demo.png)
 
 ```
 "Send 5 KAS to kaspa:qz..."
