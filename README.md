@@ -107,6 +107,8 @@ Get transaction details including inputs and outputs.
 
 ## Example
 
+![Demo of kaspa-mcp in Claude Code](assets/demo.png)
+
 ```
 "Send 5 KAS to kaspa:qz..."
 ```
