@@ -88,12 +88,22 @@ Send KAS tokens to a recipient.
 - Insufficient balance check before broadcast
 
 ### `get_transaction`
-Check transaction status.
+Get transaction details including inputs and outputs.
 
 **Parameters:**
 - `txId`: Transaction ID
 
-**Returns:** `{ txId: string, accepted: boolean, blockHash?: string }`
+**Returns:**
+```typescript
+{
+  txId: string,
+  accepted: boolean,
+  blockHash?: string,
+  blockTime?: number,
+  inputs: Array<{ transactionId: string, index: number }>,
+  outputs: Array<{ index: number, amount: string, address: string }>
+}
+```
 
 ## Example
 
@@ -111,7 +121,7 @@ The MCP will:
 
 ## Technical Details
 
-- Uses [kaspa-wasm](https://github.com/aspect-build/aspect-cli/tree/main/node_modules/kaspa-wasm) v1.0.1 for cryptographic operations
+- Uses [kaspa-wasm](https://github.com/aspect-build/aspect-cli) for cryptographic operations
 - Connects to public nodes via Resolver for automatic node discovery
 - Implements BIP44 derivation path `m/44'/111111'/account'` for mnemonic wallets
 - Transaction building uses Generator for KIP-9 compliant UTXO management
