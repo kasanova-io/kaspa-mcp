@@ -3,7 +3,10 @@
 
 import * as kaspa from 'kaspa-wasm';
 
-const { PrivateKey, NetworkType, Mnemonic, XPrv, PrivateKeyGenerator } = kaspa;
+const { PrivateKey, NetworkType, Mnemonic, XPrv } = kaspa;
+
+// Runtime detection: kaspa-wasm 1.x uses PrivateKeyGenerator, 0.13.x uses XPrivateKey
+const KeyGenerator = (kaspa as any).PrivateKeyGenerator || (kaspa as any).XPrivateKey;
 
 export type NetworkTypeName = 'mainnet' | 'testnet-10' | 'testnet-11';
 
@@ -34,9 +37,9 @@ function derivePrivateKeyFromMnemonic(phrase: string, accountIndex = 0): kaspa.P
     .deriveChild(accountIndex, true);
 
   const xprvString = derived.intoString('xprv');
-  const privateKeyGenerator = new PrivateKeyGenerator(xprvString, false, BigInt(accountIndex));
+  const keyGenerator = new KeyGenerator(xprvString, false, BigInt(accountIndex));
 
-  return privateKeyGenerator.receiveKey(0);
+  return keyGenerator.receiveKey(0);
 }
 
 export class KaspaWallet {

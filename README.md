@@ -109,6 +109,22 @@ Get transaction details including inputs and outputs.
 
 ![Demo of kaspa-mcp in Claude Code](https://raw.githubusercontent.com/kasanova-io/kaspa-mcp/main/assets/demo.png)
 
+### Test Prompts
+
+Try these prompts to verify your MCP is working:
+
+```
+"What is my Kaspa address?"
+```
+
+```
+"How much KAS do I have?"
+```
+
+```
+"What are the current network fees?"
+```
+
 ```
 "Send 5 KAS to kaspa:qz..."
 ```
