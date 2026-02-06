@@ -12,6 +12,7 @@ import { getBalance } from './tools/get-balance.js';
 import { getFeeEstimate } from './tools/get-fee-estimate.js';
 import { sendKaspa } from './tools/send-kaspa.js';
 import { getTransaction } from './tools/get-transaction.js';
+import { generateMnemonic } from './tools/generate-mnemonic.js';
 
 type ToolResponse = {
   content: Array<{ type: 'text'; text: string }>;
@@ -36,7 +37,7 @@ async function wrapToolHandler<T>(handler: () => Promise<T>): Promise<ToolRespon
 const server = new McpServer(
   {
     name: 'kaspa-mcp',
-    version: '0.1.0',
+    version: '0.2.0',
   },
   {
     capabilities: {
@@ -91,6 +92,22 @@ server.tool(
     txId: z.string().describe('Transaction ID'),
   },
   async (params) => wrapToolHandler(() => getTransaction({ txId: params.txId }))
+);
+
+server.tool(
+  'generate_mnemonic',
+  'Generate a new BIP39 mnemonic phrase and derive the corresponding Kaspa wallet address. Use this to create a new wallet.',
+  {
+    wordCount: z.union([z.literal(12), z.literal(24)]).optional().describe('Number of words (12 or 24, default: 24)'),
+    network: z.enum(['mainnet', 'testnet-10', 'testnet-11']).optional().describe('Network for address derivation (default: mainnet)'),
+  },
+  async (params) =>
+    wrapToolHandler(() =>
+      generateMnemonic({
+        wordCount: params.wordCount,
+        network: params.network,
+      })
+    )
 );
 
 async function main() {

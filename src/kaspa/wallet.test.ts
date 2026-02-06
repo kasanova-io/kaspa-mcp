@@ -4,7 +4,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { KaspaWallet, getWallet } from './wallet.js';
-import testVectors from './test-vectors.json';
+import testVectors from './test-vectors.json' with { type: 'json' };
 
 // WARNING: These are PUBLIC TEST-ONLY credentials. DO NOT use on mainnet with real funds.
 // They are published in this repository and offer no security.

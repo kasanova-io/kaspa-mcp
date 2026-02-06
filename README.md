@@ -53,6 +53,25 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 
 ## Tools
 
+### `generate_mnemonic`
+Generate a new BIP39 mnemonic phrase and derive the corresponding Kaspa wallet address.
+
+**Parameters:**
+- `wordCount` (optional): Number of words - 12 or 24 (default: 24)
+- `network` (optional): Network for address derivation - `mainnet`, `testnet-10`, or `testnet-11` (default: mainnet)
+
+**Returns:**
+```typescript
+{
+  mnemonic: string,    // The generated BIP39 mnemonic phrase
+  address: string,     // Derived Kaspa address (account 0)
+  network: string,     // Network used
+  warning: string      // Security reminder
+}
+```
+
+**Important:** The mnemonic is generated using cryptographically secure randomness. Save it securely - it cannot be recovered if lost.
+
 ### `get_my_address`
 Get the Kaspa address derived from your configured private key or mnemonic.
 
@@ -112,6 +131,10 @@ Get transaction details including inputs and outputs.
 ### Test Prompts
 
 Try these prompts to verify your MCP is working:
+
+```
+"Generate a new Kaspa wallet for me"
+```
 
 ```
 "What is my Kaspa address?"
