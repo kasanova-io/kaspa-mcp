@@ -1,0 +1,72 @@
+{
+  "description": "Test vectors for Kaspa wallet key derivation. Uses standard BIP39 test mnemonics with BIP44 path m/44'/111111'/account'/0/0",
+  "warning": "These are PUBLIC TEST-ONLY credentials. DO NOT use on mainnet with real funds.",
+  "vectors": [
+    {
+      "name": "BIP39 12-word test mnemonic",
+      "mnemonic": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+      "accounts": [
+        {
+          "accountIndex": 0,
+          "derivationPath": "m/44'/111111'/0'/0/0",
+          "privateKey": "9206f2009c5de3a3cdff98fad0a15f79a49682bb45aa7e829a367d604d521d22",
+          "publicKey": "030d24135fa786e3603b1d67a271b95a71b95b2adc4ee69ec43fb9a5a5f0023f76",
+          "mainnetAddress": "kaspa:qqxjgy6l57rwxcpmr4n6yudetfcmjke2m38wd8ky87u6tf0sqglhvu3d3hgq9",
+          "testnetAddress": "kaspatest:qqxjgy6l57rwxcpmr4n6yudetfcmjke2m38wd8ky87u6tf0sqglhvaht2ck3p"
+        },
+        {
+          "accountIndex": 1,
+          "derivationPath": "m/44'/111111'/1'/0/0",
+          "privateKey": "ebdb6858a04951de43393b89cf060fae1bbb91384ec91ab85a9ed1ed82201054",
+          "publicKey": "02e52e9a7838aa42ac1db235091876faa9009196f43bc65036dc5a3d228a9aeb76",
+          "mainnetAddress": "kaspa:qrjjaxnc8z4y9tqakg6sjxrkl25spyvk7sauv5pkm3dr6g52nt4hv6rung7y0",
+          "testnetAddress": "kaspatest:qrjjaxnc8z4y9tqakg6sjxrkl25spyvk7sauv5pkm3dr6g52nt4hv0yyghpmy"
+        }
+      ]
+    },
+    {
+      "name": "BIP39 24-word test mnemonic",
+      "mnemonic": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art",
+      "accounts": [
+        {
+          "accountIndex": 0,
+          "derivationPath": "m/44'/111111'/0'/0/0",
+          "privateKey": "27b249b0814d0f4eec47ca7dea7ecf24e339111f69769d9b6281b7391278bf2d",
+          "publicKey": "02c3b156eed79da2257c25da1dc8e6350ea346868cec59ffec2c04ae907a7d2d27",
+          "mainnetAddress": "kaspa:qrpmz4hw67w6yftuyhdpmj8xx582x35x3nk9nllv9sz2ayr605kjw78nyqh46",
+          "testnetAddress": "kaspatest:qrpmz4hw67w6yftuyhdpmj8xx582x35x3nk9nllv9sz2ayr605kjwlp4l0fy7"
+        },
+        {
+          "accountIndex": 1,
+          "derivationPath": "m/44'/111111'/1'/0/0",
+          "privateKey": "8dbc4ae9ada4b14c91d7285b558578260c2555a740b6ba4e0820edb0984d314f",
+          "publicKey": "033627a4fd00486ef0c62a0d9f4a3c9a2d5b8bb1d2068f859237d63c952af214f2",
+          "mainnetAddress": "kaspa:qqmz0f8aqpyxauxx9gxe7j3ungk4hza36grglpvjxltre9f27g20y6cwfup74",
+          "testnetAddress": "kaspatest:qqmz0f8aqpyxauxx9gxe7j3ungk4hza36grglpvjxltre9f27g20yxsjv98y2"
+        }
+      ]
+    }
+  ],
+  "privateKeyVectors": [
+    {
+      "name": "Known private key",
+      "privateKey": "a9f8d7e6c5b4a3029187654321fedcba9876543210fedcba9876543210fedcba",
+      "mainnetAddress": "kaspa:qzzv6hw00jumjsnqg2360v3wedrrggwawse66nm30fzyepx0p5c9jzk52rdmh",
+      "testnetAddress": "kaspatest:qzzv6hw00jumjsnqg2360v3wedrrggwawse66nm30fzyepx0p5c9jrsj3vn2n"
+    }
+  ],
+  "invalidMnemonics": [
+    "",
+    "invalid",
+    "invalid mnemonic words",
+    "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
+    "sleep kitten sleep kitten sleep kitten sleep kitten sleep kitten sleep kitten"
+  ],
+  "invalidPrivateKeys": [
+    "",
+    "not-a-valid-key",
+    "zz",
+    "00000000000000000000000000000000",
+    "gg"
+  ]
+}

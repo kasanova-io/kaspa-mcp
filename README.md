@@ -151,6 +151,20 @@ The MCP will:
 - Error messages are sanitized to prevent secret leakage
 - All transactions require explicit user action via MCP tools
 
+## Testing
+
+```bash
+npm test
+```
+
+The test suite includes deterministic test vectors based on the [Kaspium wallet](https://github.com/aspect-build/kaspium_wallet) for cross-implementation verification. Test vectors are stored in `src/kaspa/test-vectors.json` and include:
+
+- Standard BIP39 test mnemonics (12 and 24 words)
+- Known private key → address derivations
+- Invalid input validation
+
+These vectors ensure that key derivation is consistent across Kaspa wallet implementations using the BIP44 path `m/44'/111111'/account'/0/0`.
+
 ## Networks
 
 | Network | Address Prefix | API Endpoint |
