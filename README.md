@@ -165,6 +165,8 @@ The test suite includes deterministic test vectors based on the [Kaspium wallet]
 
 These vectors ensure that key derivation is consistent across Kaspa wallet implementations using the BIP44 path `m/44'/111111'/account'/0/0`.
 
+**Note:** Coin type `111111` is Kaspa's de-facto standard, used by rusty-kaspa (official node), Kaspium, and kaspa-wasm. While not formally registered in SLIP-0044, it is the established ecosystem convention.
+
 ## Networks
 
 | Network | Address Prefix | API Endpoint |

@@ -250,6 +250,19 @@ describe('getWallet', () => {
     expect(wallet.getAddress()).toBe(VECTOR_12_WORD.accounts[0].mainnetAddress);
   });
 
+  it('prefers KASPA_MNEMONIC over KASPA_PRIVATE_KEY when both set', async () => {
+    // Both credentials set - mnemonic should take precedence
+    process.env.KASPA_MNEMONIC = VECTOR_12_WORD.mnemonic;
+    process.env.KASPA_PRIVATE_KEY = VECTOR_PRIVATE_KEY.privateKey;
+    process.env.KASPA_NETWORK = 'mainnet';
+
+    const { getWallet: freshGetWallet } = await import('./wallet.js');
+    const wallet = freshGetWallet();
+    // Should use mnemonic-derived address, not private key address
+    expect(wallet.getAddress()).toBe(VECTOR_12_WORD.accounts[0].mainnetAddress);
+    expect(wallet.getAddress()).not.toBe(VECTOR_PRIVATE_KEY.mainnetAddress);
+  });
+
   it('throws error when no credentials set', async () => {
     delete process.env.KASPA_MNEMONIC;
     delete process.env.KASPA_PRIVATE_KEY;

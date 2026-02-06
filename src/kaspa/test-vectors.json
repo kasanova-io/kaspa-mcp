@@ -1,5 +1,10 @@
 {
   "description": "Test vectors for Kaspa wallet key derivation. Uses standard BIP39 test mnemonics with BIP44 path m/44'/111111'/account'/0/0",
+  "coinType": {
+    "value": 111111,
+    "note": "Kaspa's de-facto standard coin type. Used by rusty-kaspa (official node), Kaspium, kaspa-wasm. Not registered in SLIP-0044 but established ecosystem convention.",
+    "source": "https://github.com/kaspanet/rusty-kaspa/blob/master/wallet/keys/src/derivation/gen1/hd.rs"
+  },
   "warning": "These are PUBLIC TEST-ONLY credentials. DO NOT use on mainnet with real funds.",
   "vectors": [
     {
