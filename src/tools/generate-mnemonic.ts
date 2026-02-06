@@ -19,7 +19,7 @@ export interface GenerateMnemonicResult {
 }
 
 export async function generateMnemonic(params: GenerateMnemonicParams = {}): Promise<GenerateMnemonicResult> {
-  const wordCount = params.wordCount ?? 24;
+  const wordCount = params.wordCount ?? 12;
   const network = params.network ?? 'mainnet';
 
   if (wordCount !== 12 && wordCount !== 24) {

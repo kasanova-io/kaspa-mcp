@@ -5,22 +5,22 @@ import { describe, it, expect } from 'vitest';
 import { generateMnemonic } from './generate-mnemonic.js';
 
 describe('generateMnemonic', () => {
-  it('generates a 24-word mnemonic by default', async () => {
+  it('generates a 12-word mnemonic by default', async () => {
     const result = await generateMnemonic();
 
     expect(result.mnemonic).toBeDefined();
     const words = result.mnemonic.split(' ');
-    expect(words).toHaveLength(24);
+    expect(words).toHaveLength(12);
     expect(result.network).toBe('mainnet');
     expect(result.address).toMatch(/^kaspa:/);
     expect(result.warning).toContain('IMPORTANT');
   });
 
-  it('generates a 12-word mnemonic when requested', async () => {
-    const result = await generateMnemonic({ wordCount: 12 });
+  it('generates a 24-word mnemonic when requested', async () => {
+    const result = await generateMnemonic({ wordCount: 24 });
 
     const words = result.mnemonic.split(' ');
-    expect(words).toHaveLength(12);
+    expect(words).toHaveLength(24);
   });
 
   it('generates for testnet when specified', async () => {

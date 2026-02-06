@@ -57,7 +57,7 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 Generate a new BIP39 mnemonic phrase and derive the corresponding Kaspa wallet address.
 
 **Parameters:**
-- `wordCount` (optional): Number of words - 12 or 24 (default: 24)
+- `wordCount` (optional): Number of words - 12 or 24 (default: 12)
 - `network` (optional): Network for address derivation - `mainnet`, `testnet-10`, or `testnet-11` (default: mainnet)
 
 **Returns:**

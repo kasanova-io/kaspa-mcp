@@ -98,7 +98,7 @@ server.tool(
   'generate_mnemonic',
   'Generate a new BIP39 mnemonic phrase and derive the corresponding Kaspa wallet address. Use this to create a new wallet.',
   {
-    wordCount: z.union([z.literal(12), z.literal(24)]).optional().describe('Number of words (12 or 24, default: 24)'),
+    wordCount: z.union([z.literal(12), z.literal(24)]).optional().describe('Number of words (12 or 24, default: 12)'),
     network: z.enum(['mainnet', 'testnet-10', 'testnet-11']).optional().describe('Network for address derivation (default: mainnet)'),
   },
   async (params) =>
