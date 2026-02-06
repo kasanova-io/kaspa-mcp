@@ -5,9 +5,6 @@ import * as kaspa from 'kaspa-wasm';
 
 const { PrivateKey, NetworkType, Mnemonic, XPrv } = kaspa;
 
-// Runtime detection: kaspa-wasm 1.x uses PrivateKeyGenerator, 0.13.x uses XPrivateKey
-const KeyGenerator = (kaspa as any).PrivateKeyGenerator || (kaspa as any).XPrivateKey;
-
 export type NetworkTypeName = 'mainnet' | 'testnet-10' | 'testnet-11';
 
 function getNetworkType(network: NetworkTypeName): kaspa.NetworkType {
@@ -28,18 +25,20 @@ function derivePrivateKeyFromMnemonic(phrase: string, accountIndex = 0): kaspa.P
   const seed = mnemonic.toSeed();
   const xprv = new XPrv(seed);
 
-  // BIP44 path: m/44'/111111'/account'
+  // BIP44 path: m/44'/111111'/account'/0/0
   // 44' = purpose (BIP44)
   // 111111' = Kaspa coin type
+  // account' = account index (hardened)
+  // 0 = external chain (receive addresses)
+  // 0 = address index
   const derived = xprv
-    .deriveChild(44, true)
-    .deriveChild(111111, true)
-    .deriveChild(accountIndex, true);
+    .deriveChild(44, true)        // purpose
+    .deriveChild(111111, true)    // coin type
+    .deriveChild(accountIndex, true)  // account
+    .deriveChild(0, false)        // external chain (receive)
+    .deriveChild(0, false);       // address index
 
-  const xprvString = derived.intoString('xprv');
-  const keyGenerator = new KeyGenerator(xprvString, false, BigInt(accountIndex));
-
-  return keyGenerator.receiveKey(0);
+  return derived.toPrivateKey();
 }
 
 export class KaspaWallet {

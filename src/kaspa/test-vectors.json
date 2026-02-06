@@ -14,18 +14,18 @@
         {
           "accountIndex": 0,
           "derivationPath": "m/44'/111111'/0'/0/0",
-          "privateKey": "9206f2009c5de3a3cdff98fad0a15f79a49682bb45aa7e829a367d604d521d22",
-          "publicKey": "030d24135fa786e3603b1d67a271b95a71b95b2adc4ee69ec43fb9a5a5f0023f76",
-          "mainnetAddress": "kaspa:qqxjgy6l57rwxcpmr4n6yudetfcmjke2m38wd8ky87u6tf0sqglhvu3d3hgq9",
-          "testnetAddress": "kaspatest:qqxjgy6l57rwxcpmr4n6yudetfcmjke2m38wd8ky87u6tf0sqglhvaht2ck3p"
+          "privateKey": "24cd8d2875e8e17e4f88fbc554834a89b7b3e0c6f9d84fae36883604359ba440",
+          "publicKey": "031bacea84ca721c95d67ecace19bc499a77c03726bc8739af637bcd89abaaf058",
+          "mainnetAddress": "kaspa:qqd6e65yefepe9wk0m9vuxdufxd80sphy67gwwd0vdaumzdt4tc9s3qt0lqeh",
+          "testnetAddress": "kaspatest:qqd6e65yefepe9wk0m9vuxdufxd80sphy67gwwd0vdaumzdt4tc9ssxd5s7gn"
         },
         {
           "accountIndex": 1,
           "derivationPath": "m/44'/111111'/1'/0/0",
-          "privateKey": "ebdb6858a04951de43393b89cf060fae1bbb91384ec91ab85a9ed1ed82201054",
-          "publicKey": "02e52e9a7838aa42ac1db235091876faa9009196f43bc65036dc5a3d228a9aeb76",
-          "mainnetAddress": "kaspa:qrjjaxnc8z4y9tqakg6sjxrkl25spyvk7sauv5pkm3dr6g52nt4hv6rung7y0",
-          "testnetAddress": "kaspatest:qrjjaxnc8z4y9tqakg6sjxrkl25spyvk7sauv5pkm3dr6g52nt4hv0yyghpmy"
+          "privateKey": "3b9a2d8b76c34f36585a9567844beb5df6f7d89a474a351eed295a2cfa65437e",
+          "publicKey": "03880cbc9aac80c33eb1935fb0a3881b5ef244a20bd7e96aa7a56de1bff3567916",
+          "mainnetAddress": "kaspa:qzyqe0y64jqvx043jd0mpgugrd00y39zp0t7j64854k7r0ln2eu3vck8n7p07",
+          "testnetAddress": "kaspatest:qzyqe0y64jqvx043jd0mpgugrd00y39zp0t7j64854k7r0ln2eu3vespg3l76"
         }
       ]
     },
@@ -36,18 +36,18 @@
         {
           "accountIndex": 0,
           "derivationPath": "m/44'/111111'/0'/0/0",
-          "privateKey": "27b249b0814d0f4eec47ca7dea7ecf24e339111f69769d9b6281b7391278bf2d",
-          "publicKey": "02c3b156eed79da2257c25da1dc8e6350ea346868cec59ffec2c04ae907a7d2d27",
-          "mainnetAddress": "kaspa:qrpmz4hw67w6yftuyhdpmj8xx582x35x3nk9nllv9sz2ayr605kjw78nyqh46",
-          "testnetAddress": "kaspatest:qrpmz4hw67w6yftuyhdpmj8xx582x35x3nk9nllv9sz2ayr605kjwlp4l0fy7"
+          "privateKey": "0e96dce68713d9596aa8b4279055c140ba66b6997af1f19b1d807f118a75bea2",
+          "publicKey": "0394f42b8818f7a515339b36990612f98a2e292a148ea3b9c16150c3627d97de08",
+          "mainnetAddress": "kaspa:qz20g2ugrrm629fnnvmfjpsjlx9zu2f2zj828wwpv9gvxcnajl0qs36s8hfkl",
+          "testnetAddress": "kaspatest:qz20g2ugrrm629fnnvmfjpsjlx9zu2f2zj828wwpv9gvxcnajl0qssukuch8m"
         },
         {
           "accountIndex": 1,
           "derivationPath": "m/44'/111111'/1'/0/0",
-          "privateKey": "8dbc4ae9ada4b14c91d7285b558578260c2555a740b6ba4e0820edb0984d314f",
-          "publicKey": "033627a4fd00486ef0c62a0d9f4a3c9a2d5b8bb1d2068f859237d63c952af214f2",
-          "mainnetAddress": "kaspa:qqmz0f8aqpyxauxx9gxe7j3ungk4hza36grglpvjxltre9f27g20y6cwfup74",
-          "testnetAddress": "kaspatest:qqmz0f8aqpyxauxx9gxe7j3ungk4hza36grglpvjxltre9f27g20yxsjv98y2"
+          "privateKey": "12fa5ba83ce3b1769b65db8b3b5fea9daf92abc74239e37f3b32db8003b3ad20",
+          "publicKey": "0342ba96591fc2a6481c65d32c04569f7c856a42e28673b9d09ae229b415032732",
+          "mainnetAddress": "kaspa:qppt49jerlp2vjquvhfjcpzkna7g26jzu2r88wwsnt3zndq4qvnnywxtsehh8",
+          "testnetAddress": "kaspatest:qppt49jerlp2vjquvhfjcpzkna7g26jzu2r88wwsnt3zndq4qvnny0qdtkfxr"
         }
       ]
     }
