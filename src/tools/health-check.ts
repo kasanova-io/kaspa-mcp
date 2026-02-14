@@ -15,7 +15,7 @@ export interface HealthCheckResult {
   version: string;
 }
 
-const VERSION = '0.3.1';
+const VERSION = '0.3.2';
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
