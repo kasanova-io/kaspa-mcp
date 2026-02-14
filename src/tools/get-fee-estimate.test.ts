@@ -1,94 +1,47 @@
-// ABOUTME: Unit tests for get-fee-estimate MCP tool
-// ABOUTME: Tests fee estimate retrieval and formatting
+// ABOUTME: Tests for get-fee-estimate MCP tool against real testnet API
+// ABOUTME: Validates fee estimate retrieval with spyOn for empty-bucket edge cases
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-
-vi.mock('../kaspa/wallet.js', () => ({
-  getWallet: vi.fn(),
-}));
-
-vi.mock('../kaspa/api.js', () => ({
-  getApi: vi.fn(),
-}));
-
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { getFeeEstimate } from './get-fee-estimate.js';
-import { getWallet } from '../kaspa/wallet.js';
 import { getApi } from '../kaspa/api.js';
+import { TESTNET_NETWORK } from '../test-helpers.js';
 
 describe('getFeeEstimate', () => {
-  const mockWallet = {
-    getNetworkId: vi.fn(),
-  };
-
-  const mockApi = {
-    getFeeEstimate: vi.fn(),
-  };
-
-  beforeEach(() => {
-    vi.mocked(getWallet).mockReturnValue(mockWallet as never);
-    vi.mocked(getApi).mockReturnValue(mockApi as never);
-    mockWallet.getNetworkId.mockReset();
-    mockApi.getFeeEstimate.mockReset();
-  });
-
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('returns fee estimates from API', async () => {
-    mockWallet.getNetworkId.mockReturnValue('mainnet');
-    mockApi.getFeeEstimate.mockResolvedValue({
-      priorityBucket: { feerate: 1.5 },
-      normalBuckets: [{ feerate: 1.0 }],
-      lowBuckets: [{ feerate: 0.5 }],
-    });
-
+  it('returns fee estimates from real API', async () => {
     const result = await getFeeEstimate();
 
-    expect(result).toEqual({
-      priorityFee: '1.5',
-      normalFee: '1',
-      lowFee: '0.5',
-    });
-    expect(getApi).toHaveBeenCalledWith('mainnet');
+    expect(Number(result.priorityFee)).toBeGreaterThan(0);
+    expect(result.normalFee).toBeDefined();
+    expect(result.lowFee).toBeDefined();
   });
 
-  it('returns 0 for normal fee when normalBuckets is empty', async () => {
-    mockWallet.getNetworkId.mockReturnValue('testnet-10');
-    mockApi.getFeeEstimate.mockResolvedValue({
-      priorityBucket: { feerate: 2.0 },
+  it('returns unavailable for normal fee when normalBuckets is empty', async () => {
+    const api = getApi(TESTNET_NETWORK);
+    vi.spyOn(api, 'getFeeEstimate').mockResolvedValue({
+      priorityBucket: { feerate: 2.0, estimatedSeconds: 1 },
       normalBuckets: [],
-      lowBuckets: [{ feerate: 0.5 }],
+      lowBuckets: [{ feerate: 0.5, estimatedSeconds: 60 }],
     });
 
     const result = await getFeeEstimate();
 
-    expect(result.normalFee).toBe('0');
+    expect(result.normalFee).toBe('unavailable');
   });
 
-  it('returns 0 for low fee when lowBuckets is empty', async () => {
-    mockWallet.getNetworkId.mockReturnValue('testnet-11');
-    mockApi.getFeeEstimate.mockResolvedValue({
-      priorityBucket: { feerate: 2.0 },
-      normalBuckets: [{ feerate: 1.0 }],
+  it('returns unavailable for low fee when lowBuckets is empty', async () => {
+    const api = getApi(TESTNET_NETWORK);
+    vi.spyOn(api, 'getFeeEstimate').mockResolvedValue({
+      priorityBucket: { feerate: 2.0, estimatedSeconds: 1 },
+      normalBuckets: [{ feerate: 1.0, estimatedSeconds: 30 }],
       lowBuckets: [],
     });
 
     const result = await getFeeEstimate();
 
-    expect(result.lowFee).toBe('0');
-  });
-
-  it('uses correct network from wallet', async () => {
-    mockWallet.getNetworkId.mockReturnValue('testnet-10');
-    mockApi.getFeeEstimate.mockResolvedValue({
-      priorityBucket: { feerate: 1.0 },
-      normalBuckets: [{ feerate: 0.5 }],
-      lowBuckets: [{ feerate: 0.25 }],
-    });
-
-    await getFeeEstimate();
-
-    expect(getApi).toHaveBeenCalledWith('testnet-10');
+    expect(result.lowFee).toBe('unavailable');
   });
 });

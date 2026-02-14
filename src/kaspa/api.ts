@@ -18,7 +18,11 @@ export class KaspaApi {
   private baseUrl: string;
 
   constructor(network: string = 'mainnet') {
-    this.baseUrl = API_ENDPOINTS[network] || API_ENDPOINTS.mainnet;
+    const endpoint = API_ENDPOINTS[network];
+    if (!endpoint) {
+      throw new Error(`Unknown network "${network}". Supported: ${Object.keys(API_ENDPOINTS).join(', ')}`);
+    }
+    this.baseUrl = endpoint;
   }
 
   private async fetch<T>(path: string, options?: RequestInit): Promise<T> {

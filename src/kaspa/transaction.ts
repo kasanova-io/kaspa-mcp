@@ -14,6 +14,14 @@ const {
   Address,
 } = kaspa;
 
+function hexToBytes(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+  }
+  return bytes;
+}
+
 export interface SendResult {
   txId: string;
   fee: string;
@@ -111,7 +119,7 @@ export async function sendKaspa(
       priorityFee,
       changeAddress: senderAddress,
       networkId: wallet.getNetworkId(),
-      ...(payload ? { payload } : {}),
+      ...(payload ? { payload: hexToBytes(payload) } : {}),
     });
 
     let pending: kaspa.PendingTransaction | undefined;

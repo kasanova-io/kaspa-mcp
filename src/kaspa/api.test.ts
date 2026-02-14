@@ -33,9 +33,8 @@ describe('KaspaApi', () => {
       expect(api).toBeInstanceOf(KaspaApi);
     });
 
-    it('falls back to mainnet for unknown network', () => {
-      const api = new KaspaApi('unknown-network');
-      expect(api).toBeInstanceOf(KaspaApi);
+    it('throws error for unknown network', () => {
+      expect(() => new KaspaApi('unknown-network')).toThrow('Unknown network "unknown-network"');
     });
   });
 

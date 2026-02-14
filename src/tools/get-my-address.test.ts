@@ -1,44 +1,20 @@
-// ABOUTME: Unit tests for get-my-address MCP tool
-// ABOUTME: Tests wallet address retrieval functionality
+// ABOUTME: Tests for get-my-address MCP tool against real testnet wallet
+// ABOUTME: Validates address derivation from KASPA_MNEMONIC env var
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-
-vi.mock('../kaspa/wallet.js', () => ({
-  getWallet: vi.fn(),
-}));
-
+import { describe, it, expect } from 'vitest';
 import { getMyAddress } from './get-my-address.js';
-import { getWallet } from '../kaspa/wallet.js';
+import { TESTNET_ADDRESS } from '../test-helpers.js';
 
 describe('getMyAddress', () => {
-  const mockWallet = {
-    getAddress: vi.fn(),
-  };
-
-  beforeEach(() => {
-    vi.mocked(getWallet).mockReturnValue(mockWallet as never);
-    mockWallet.getAddress.mockReset();
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  it('returns the wallet address', async () => {
-    mockWallet.getAddress.mockReturnValue('kaspa:qptest123');
-
+  it('returns the wallet address derived from mnemonic', async () => {
     const result = await getMyAddress();
 
-    expect(result).toEqual({ address: 'kaspa:qptest123' });
-    expect(getWallet).toHaveBeenCalled();
-    expect(mockWallet.getAddress).toHaveBeenCalled();
+    expect(result).toEqual({ address: TESTNET_ADDRESS });
   });
 
-  it('returns testnet address when wallet is on testnet', async () => {
-    mockWallet.getAddress.mockReturnValue('kaspatest:qptest456');
-
+  it('returns a testnet-prefixed address', async () => {
     const result = await getMyAddress();
 
-    expect(result).toEqual({ address: 'kaspatest:qptest456' });
+    expect(result.address).toMatch(/^kaspatest:/);
   });
 });

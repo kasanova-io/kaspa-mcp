@@ -14,7 +14,6 @@ export interface GetBalanceParams {
 export interface GetBalanceResult {
   address: string;
   balance: string;
-  utxoCount: number;
 }
 
 export async function getBalance(params: GetBalanceParams): Promise<GetBalanceResult> {
@@ -22,16 +21,11 @@ export async function getBalance(params: GetBalanceParams): Promise<GetBalanceRe
   const address = params.address || wallet.getAddress();
   const api = getApi(wallet.getNetworkId());
 
-  const [balanceResponse, utxos] = await Promise.all([
-    api.getBalance(address),
-    api.getUtxos(address),
-  ]);
-
+  const balanceResponse = await api.getBalance(address);
   const balanceKas = sompiToKaspaString(BigInt(balanceResponse.balance));
 
   return {
     address,
     balance: balanceKas,
-    utxoCount: utxos.length,
   };
 }

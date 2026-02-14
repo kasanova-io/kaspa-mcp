@@ -16,7 +16,7 @@ export async function getFeeEstimate(): Promise<GetFeeEstimateResult> {
 
   return {
     priorityFee: feeEstimate.priorityBucket.feerate.toString(),
-    normalFee: feeEstimate.normalBuckets[0]?.feerate.toString() || '0',
-    lowFee: feeEstimate.lowBuckets[0]?.feerate.toString() || '0',
+    normalFee: feeEstimate.normalBuckets[0]?.feerate?.toString() ?? 'unavailable',
+    lowFee: feeEstimate.lowBuckets[0]?.feerate?.toString() ?? 'unavailable',
   };
 }

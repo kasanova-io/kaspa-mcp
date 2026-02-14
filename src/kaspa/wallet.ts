@@ -14,9 +14,9 @@ function getNetworkType(network: NetworkTypeName): kaspa.NetworkType {
     case 'testnet-10':
     case 'testnet-11':
       return NetworkType.Testnet;
-    /* c8 ignore next 2 */
+    /* v8 ignore next 2 -- @preserve */
     default:
-      return NetworkType.Mainnet;
+      throw new Error(`Unsupported network type: ${network}`);
   }
 }
 
@@ -60,8 +60,10 @@ export class KaspaWallet {
     try {
       const privateKey = new PrivateKey(privateKeyHex);
       return new KaspaWallet(privateKey, network);
-    } catch {
-      throw new Error('Invalid private key format');
+    } catch (error) {
+      /* v8 ignore next -- @preserve */
+      const detail = error instanceof Error ? error.message : String(error);
+      throw new Error(`Invalid private key format: ${detail}`);
     }
   }
 
@@ -73,8 +75,10 @@ export class KaspaWallet {
     try {
       const privateKey = derivePrivateKeyFromMnemonic(phrase, accountIndex);
       return new KaspaWallet(privateKey, network);
-    } catch {
-      throw new Error('Invalid mnemonic phrase');
+    } catch (error) {
+      /* v8 ignore next -- @preserve */
+      const detail = error instanceof Error ? error.message : String(error);
+      throw new Error(`Invalid mnemonic phrase: ${detail}`);
     }
   }
 
@@ -98,12 +102,24 @@ export class KaspaWallet {
 
 let walletInstance: KaspaWallet | null = null;
 
+const VALID_NETWORKS: NetworkTypeName[] = ['mainnet', 'testnet-10', 'testnet-11'];
+
 export function getWallet(): KaspaWallet {
   if (!walletInstance) {
     const mnemonic = process.env.KASPA_MNEMONIC;
     const privateKey = process.env.KASPA_PRIVATE_KEY;
-    const network = (process.env.KASPA_NETWORK as NetworkTypeName) || 'mainnet';
-    const accountIndex = parseInt(process.env.KASPA_ACCOUNT_INDEX || '0', 10);
+    const networkEnv = process.env.KASPA_NETWORK || 'mainnet';
+
+    if (!VALID_NETWORKS.includes(networkEnv as NetworkTypeName)) {
+      throw new Error(`Invalid KASPA_NETWORK: "${networkEnv}". Supported: ${VALID_NETWORKS.join(', ')}`);
+    }
+    const network = networkEnv as NetworkTypeName;
+
+    const accountIndexStr = process.env.KASPA_ACCOUNT_INDEX || '0';
+    const accountIndex = parseInt(accountIndexStr, 10);
+    if (isNaN(accountIndex) || accountIndex < 0) {
+      throw new Error(`Invalid KASPA_ACCOUNT_INDEX: "${accountIndexStr}". Must be a non-negative integer.`);
+    }
 
     if (mnemonic) {
       walletInstance = KaspaWallet.fromMnemonic(mnemonic, network, accountIndex);

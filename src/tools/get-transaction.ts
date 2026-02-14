@@ -48,7 +48,7 @@ export async function getTransaction(params: GetTransactionParams): Promise<GetT
       blockTime: tx.block_time,
       inputs: tx.inputs.map((input) => ({
         transactionId: input.previous_outpoint_hash,
-        index: input.previous_outpoint_index,
+        index: Number(input.previous_outpoint_index),
       })),
       outputs: tx.outputs.map((output, idx) => ({
         index: idx,

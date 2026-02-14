@@ -1,36 +1,12 @@
-// ABOUTME: Integration tests for Kaspa MCP tools
-// ABOUTME: Tests tool flows with real kaspa-wasm but mocked network calls
+// ABOUTME: Integration tests for Kaspa MCP tools against real testnet
+// ABOUTME: Tests tool flows with real kaspa-wasm and real network calls
 
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
-
-// Valid test mnemonic (24 words)
-const TEST_MNEMONIC = 'matter client cigar north mixed hard rail kitten flat shrug view group diagram release goose thumb benefit fire confirm swamp skill merry genre visa';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { TESTNET_ADDRESS, TESTNET_TX_ID } from './test-helpers.js';
 
 describe('Integration Tests', () => {
-  const mockFetch = vi.fn();
-  const originalFetch = globalThis.fetch;
-  const originalEnv = process.env;
-
-  beforeAll(() => {
-    process.env = {
-      ...originalEnv,
-      KASPA_MNEMONIC: TEST_MNEMONIC,
-      KASPA_NETWORK: 'mainnet',
-    };
-  });
-
-  afterAll(() => {
-    process.env = originalEnv;
-  });
-
   beforeEach(() => {
-    globalThis.fetch = mockFetch;
-    mockFetch.mockReset();
     vi.resetModules();
-  });
-
-  afterEach(() => {
-    globalThis.fetch = originalFetch;
   });
 
   describe('get-my-address tool', () => {
@@ -39,109 +15,60 @@ describe('Integration Tests', () => {
 
       const result = await getMyAddress();
 
-      expect(result.address).toMatch(/^kaspa:/);
-      expect(result.address).toHaveLength(67);
+      expect(result.address).toBe(TESTNET_ADDRESS);
     });
   });
 
   describe('get-balance tool', () => {
     it('returns balance for wallet address', async () => {
-      mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve({ address: 'kaspa:test', balance: '5000000000' }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve([
-            { address: 'kaspa:test', outpoint: { transactionId: 'tx1', index: 0 }, utxoEntry: { amount: '5000000000' } },
-          ]),
-        });
-
       const { getBalance } = await import('./tools/get-balance.js');
+
       const result = await getBalance({});
 
-      expect(result.address).toMatch(/^kaspa:/);
-      expect(result.balance).toBe('50');
-      expect(result.utxoCount).toBe(1);
+      expect(result.address).toBe(TESTNET_ADDRESS);
+      expect(Number(result.balance)).toBeGreaterThanOrEqual(0);
     });
 
     it('returns balance for specified address', async () => {
-      const testAddress = 'kaspa:qptest123456789abcdef';
-
-      mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve({ address: testAddress, balance: '1000000000' }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve([]),
-        });
-
       const { getBalance } = await import('./tools/get-balance.js');
-      const result = await getBalance({ address: testAddress });
 
-      expect(result.address).toBe(testAddress);
-      expect(result.balance).toBe('10');
-      expect(result.utxoCount).toBe(0);
+      const result = await getBalance({ address: TESTNET_ADDRESS });
+
+      expect(result.address).toBe(TESTNET_ADDRESS);
+      expect(Number(result.balance)).toBeGreaterThanOrEqual(0);
     });
   });
 
   describe('get-fee-estimate tool', () => {
     it('returns formatted fee estimates', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            priorityBucket: { feerate: 1.5, estimatedSeconds: 10 },
-            normalBuckets: [{ feerate: 1.0, estimatedSeconds: 30 }],
-            lowBuckets: [{ feerate: 0.5, estimatedSeconds: 60 }],
-          }),
-      });
-
       const { getFeeEstimate } = await import('./tools/get-fee-estimate.js');
+
       const result = await getFeeEstimate();
 
-      expect(result.priorityFee).toBe('1.5');
-      expect(result.normalFee).toBe('1');
-      expect(result.lowFee).toBe('0.5');
+      expect(Number(result.priorityFee)).toBeGreaterThan(0);
+      expect(result.normalFee).toBeDefined();
+      expect(result.lowFee).toBeDefined();
     });
   });
 
   describe('get-transaction tool', () => {
     it('returns transaction details', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            transaction_id: 'abc123def456',
-            is_accepted: true,
-            block_hash: ['blockhash1'],
-            block_time: 1234567890,
-            inputs: [],
-            outputs: [],
-          }),
-      });
-
       const { getTransaction } = await import('./tools/get-transaction.js');
-      const result = await getTransaction({ txId: 'abc123def456' });
 
-      expect(result.txId).toBe('abc123def456');
+      const result = await getTransaction({ txId: TESTNET_TX_ID });
+
+      expect(result.txId).toBe(TESTNET_TX_ID);
       expect(result.accepted).toBe(true);
-      expect(result.blockHash).toBe('blockhash1');
+      expect(result.blockHash).toBeDefined();
     });
 
     it('throws for missing transaction', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 404,
-        text: () => Promise.resolve('Not found'),
-      });
-
       const { getTransaction } = await import('./tools/get-transaction.js');
+      const fakeTxId = '0000000000000000000000000000000000000000000000000000000000000000';
 
-      await expect(getTransaction({ txId: 'notfound' })).rejects.toThrow('Transaction not found: notfound');
+      await expect(getTransaction({ txId: fakeTxId })).rejects.toThrow(
+        `Transaction not found: ${fakeTxId}`
+      );
     });
   });
 
@@ -155,24 +82,20 @@ describe('Integration Tests', () => {
     it('validates amount format', async () => {
       const { sendKaspa } = await import('./tools/send-kaspa.js');
 
-      // Use a valid mainnet address format for this test
-      const validMainnetAddress = 'kaspa:qpamkvhgh0kzx50gwvvp5xs8ktmqutcy3dfs9dc3w7lm9rq0zs76vf959mmrp';
-
-      await expect(sendKaspa({ to: validMainnetAddress, amount: 'abc' })).rejects.toThrow(
+      await expect(sendKaspa({ to: TESTNET_ADDRESS, amount: 'abc' })).rejects.toThrow(
         'Amount must be a valid decimal number'
       );
     });
 
     it('validates network mismatch', async () => {
-      // Create a testnet wallet to get a valid testnet address
       const { KaspaWallet } = await import('./kaspa/wallet.js');
-      const testnetWallet = KaspaWallet.fromMnemonic(TEST_MNEMONIC, 'testnet-10');
-      const validTestnetAddress = testnetWallet.getAddress();
+      const mainnetWallet = KaspaWallet.fromMnemonic(process.env.KASPA_MNEMONIC!, 'mainnet');
+      const mainnetAddress = mainnetWallet.getAddress();
 
       const { sendKaspa } = await import('./tools/send-kaspa.js');
 
-      // Wallet is on mainnet (from beforeAll), so sending to testnet address should fail
-      await expect(sendKaspa({ to: validTestnetAddress, amount: '1' })).rejects.toThrow(
+      // Wallet is on testnet-10 (from test-setup), so sending to mainnet address should fail
+      await expect(sendKaspa({ to: mainnetAddress, amount: '1' })).rejects.toThrow(
         'Address network mismatch'
       );
     });
@@ -191,13 +114,11 @@ describe('Integration Tests', () => {
 
   describe('API error handling', () => {
     it('handles API errors gracefully', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        text: () => Promise.resolve('Internal server error'),
-      });
-
+      const { getApi } = await import('./kaspa/api.js');
       const { getFeeEstimate } = await import('./tools/get-fee-estimate.js');
+
+      const api = getApi('testnet-10');
+      vi.spyOn(api, 'getFeeEstimate').mockRejectedValue(new Error('API error 500: Internal server error'));
 
       await expect(getFeeEstimate()).rejects.toThrow('API error 500');
     });

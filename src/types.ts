@@ -19,7 +19,7 @@ export interface UtxoResponse {
 
 export interface BalanceResponse {
   address: string;
-  balance: string;
+  balance: number;
 }
 
 export interface FeeEstimateResponse {
@@ -46,12 +46,12 @@ export interface TransactionResponse {
     transaction_id: string;
     index: number;
     previous_outpoint_hash: string;
-    previous_outpoint_index: number;
+    previous_outpoint_index: string;
     signature_script: string;
-    sig_op_count: number;
+    sig_op_count: string;
   }>;
   outputs: Array<{
-    amount: string;
+    amount: number;
     script_public_key: string;
     script_public_key_address: string;
     script_public_key_type: string;

@@ -303,12 +303,13 @@ describe('sendKaspa', () => {
     );
   });
 
-  it('passes payload to Generator when provided', async () => {
+  it('passes payload to Generator as Uint8Array when provided', async () => {
     const payload = 'deadbeef0123';
     await sendKaspa('kaspa:qprecipient', 100000000n, 0n, payload);
 
     expect(lastGeneratorSettings).toBeDefined();
-    expect(lastGeneratorSettings!.payload).toBe(payload);
+    expect(lastGeneratorSettings!.payload).toBeInstanceOf(Uint8Array);
+    expect(lastGeneratorSettings!.payload).toEqual(new Uint8Array([0xde, 0xad, 0xbe, 0xef, 0x01, 0x23]));
   });
 
   it('does not include payload in Generator settings when not provided', async () => {

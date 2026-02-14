@@ -1,58 +1,20 @@
-// ABOUTME: End-to-end tests for Kaspa MCP server
-// ABOUTME: Tests the MCP server tool handlers with real wallet operations
+// ABOUTME: End-to-end tests for Kaspa MCP server against real testnet
+// ABOUTME: Tests MCP tool handlers, registration, and full tool flows
 
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 
-// Valid test mnemonic (24 words)
-const TEST_MNEMONIC = 'matter client cigar north mixed hard rail kitten flat shrug view group diagram release goose thumb benefit fire confirm swamp skill merry genre visa';
-
-// Simulate the tool response wrapper from index.ts
-type ToolResponse = {
-  content: Array<{ type: 'text'; text: string }>;
-  isError?: boolean;
-};
-
-async function wrapToolHandler<T>(handler: () => Promise<T>): Promise<ToolResponse> {
-  try {
-    const result = await handler();
-    return {
-      content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-    };
-  } catch (error) {
-    return {
-      content: [{ type: 'text', text: `Error: ${error}` }],
-      isError: true,
-    };
-  }
-}
+import { wrapToolHandler } from './wrap-tool-handler.js';
+import { TESTNET_ADDRESS, TESTNET_TX_ID } from './test-helpers.js';
 
 describe('End-to-End Tests', () => {
-  const mockFetch = vi.fn();
-  const originalFetch = globalThis.fetch;
-  const originalEnv = process.env;
-
-  beforeAll(() => {
-    process.env = {
-      ...originalEnv,
-      KASPA_MNEMONIC: TEST_MNEMONIC,
-      KASPA_NETWORK: 'mainnet',
-    };
-  });
-
-  afterAll(() => {
-    process.env = originalEnv;
-  });
-
   beforeEach(() => {
-    globalThis.fetch = mockFetch;
-    mockFetch.mockReset();
     vi.resetModules();
   });
 
   afterEach(() => {
-    globalThis.fetch = originalFetch;
+    vi.restoreAllMocks();
   });
 
   describe('wrapToolHandler', () => {
@@ -68,7 +30,7 @@ describe('End-to-End Tests', () => {
       expect(parsed.address).toBe('kaspa:qptest');
     });
 
-    it('wraps error in MCP format with isError flag', async () => {
+    it('wraps Error in MCP format with isError flag', async () => {
       const handler = async () => {
         throw new Error('Test error');
       };
@@ -77,8 +39,18 @@ describe('End-to-End Tests', () => {
 
       expect(response.isError).toBe(true);
       expect(response.content).toHaveLength(1);
-      expect(response.content[0].text).toContain('Error:');
-      expect(response.content[0].text).toContain('Test error');
+      expect(response.content[0].text).toBe('Error: Test error');
+    });
+
+    it('wraps non-Error throws with descriptive message', async () => {
+      const handler = async () => {
+        throw 'string error';  // eslint-disable-line no-throw-literal
+      };
+
+      const response = await wrapToolHandler(handler);
+
+      expect(response.isError).toBe(true);
+      expect(response.content[0].text).toBe('Error: Unexpected error: string error');
     });
   });
 
@@ -160,83 +132,48 @@ describe('End-to-End Tests', () => {
   });
 
   describe('Full Tool Flow E2E', () => {
-    it('get_my_address returns valid mainnet address', async () => {
+    it('get_my_address returns valid testnet address', async () => {
       const { getMyAddress } = await import('./tools/get-my-address.js');
 
       const response = await wrapToolHandler(() => getMyAddress());
 
       expect(response.isError).toBeUndefined();
       const result = JSON.parse(response.content[0].text);
-      expect(result.address).toMatch(/^kaspa:/);
+      expect(result.address).toBe(TESTNET_ADDRESS);
     });
 
     it('get_balance returns formatted balance', async () => {
-      mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve({ balance: '10000000000' }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve([{ utxo: 1 }, { utxo: 2 }, { utxo: 3 }]),
-        });
-
       const { getBalance } = await import('./tools/get-balance.js');
 
       const response = await wrapToolHandler(() => getBalance({}));
 
       expect(response.isError).toBeUndefined();
       const result = JSON.parse(response.content[0].text);
-      expect(result.balance).toBe('100');
-      expect(result.utxoCount).toBe(3);
+      expect(Number(result.balance)).toBeGreaterThanOrEqual(0);
     });
 
     it('get_fee_estimate returns all fee tiers', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            priorityBucket: { feerate: 2.0 },
-            normalBuckets: [{ feerate: 1.5 }],
-            lowBuckets: [{ feerate: 1.0 }],
-          }),
-      });
-
       const { getFeeEstimate } = await import('./tools/get-fee-estimate.js');
 
       const response = await wrapToolHandler(() => getFeeEstimate());
 
       expect(response.isError).toBeUndefined();
       const result = JSON.parse(response.content[0].text);
-      expect(result.priorityFee).toBe('2');
-      expect(result.normalFee).toBe('1.5');
-      expect(result.lowFee).toBe('1');
+      expect(Number(result.priorityFee)).toBeGreaterThan(0);
+      expect(result.normalFee).toBeDefined();
+      expect(result.lowFee).toBeDefined();
     });
 
     it('get_transaction returns transaction status', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            transaction_id: 'txid123',
-            is_accepted: true,
-            block_hash: ['hash1'],
-            block_time: 1234567890,
-            inputs: [{ previous_outpoint_hash: 'prev_tx', previous_outpoint_index: 0 }],
-            outputs: [{ amount: '10000000000', script_public_key_address: 'kaspa:qptest' }],
-          }),
-      });
-
       const { getTransaction } = await import('./tools/get-transaction.js');
 
-      const response = await wrapToolHandler(() => getTransaction({ txId: 'txid123' }));
+      const response = await wrapToolHandler(() => getTransaction({ txId: TESTNET_TX_ID }));
 
       expect(response.isError).toBeUndefined();
       const result = JSON.parse(response.content[0].text);
-      expect(result.txId).toBe('txid123');
+      expect(result.txId).toBe(TESTNET_TX_ID);
       expect(result.accepted).toBe(true);
-      expect(result.outputs).toHaveLength(1);
-      expect(result.outputs[0].address).toBe('kaspa:qptest');
+      expect(result.outputs.length).toBeGreaterThan(0);
     });
 
     it('send_kaspa validation error returns isError', async () => {
@@ -252,10 +189,12 @@ describe('End-to-End Tests', () => {
   });
 
   describe('Error Handling E2E', () => {
-    it('API timeout is handled gracefully', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('Network timeout'));
-
+    it('API error is handled gracefully', async () => {
+      const { getApi } = await import('./kaspa/api.js');
       const { getFeeEstimate } = await import('./tools/get-fee-estimate.js');
+
+      const api = getApi('testnet-10');
+      vi.spyOn(api, 'getFeeEstimate').mockRejectedValue(new Error('Network timeout'));
 
       const response = await wrapToolHandler(() => getFeeEstimate());
 

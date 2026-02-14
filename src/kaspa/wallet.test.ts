@@ -89,7 +89,7 @@ describe('KaspaWallet', () => {
     });
 
     it('throws error for invalid mnemonic', () => {
-      expect(() => KaspaWallet.fromMnemonic('invalid mnemonic words', 'mainnet')).toThrow('Invalid mnemonic phrase');
+      expect(() => KaspaWallet.fromMnemonic('invalid mnemonic words', 'mainnet')).toThrow(/Invalid mnemonic phrase:/);
     });
 
     it('defaults to mainnet when no network specified', () => {
@@ -136,7 +136,7 @@ describe('KaspaWallet', () => {
     });
 
     it('throws error for invalid private key format', () => {
-      expect(() => KaspaWallet.fromPrivateKey('not-a-valid-key', 'mainnet')).toThrow('Invalid private key format');
+      expect(() => KaspaWallet.fromPrivateKey('not-a-valid-key', 'mainnet')).toThrow(/Invalid private key format:/);
     });
 
     it('defaults to mainnet when no network specified', () => {
@@ -172,14 +172,23 @@ describe('KaspaWallet', () => {
   describe('getNetworkType', () => {
     it('returns Mainnet for mainnet wallet', () => {
       const wallet = KaspaWallet.fromMnemonic(VECTOR_12_WORD.mnemonic, 'mainnet');
-      const networkType = wallet.getNetworkType();
-      expect(networkType).toBeDefined();
+      const mainnetWalletAddress = wallet.getAddress();
+      // Mainnet addresses start with kaspa: - confirms network type is correct
+      expect(mainnetWalletAddress).toMatch(/^kaspa:/);
+      // Also verify the type object is returned (not undefined/null)
+      expect(wallet.getNetworkType()).toBeDefined();
     });
 
     it('returns Testnet for testnet-10 wallet', () => {
       const wallet = KaspaWallet.fromMnemonic(VECTOR_12_WORD.mnemonic, 'testnet-10');
-      const networkType = wallet.getNetworkType();
-      expect(networkType).toBeDefined();
+      expect(wallet.getAddress()).toMatch(/^kaspatest:/);
+      expect(wallet.getNetworkType()).toBeDefined();
+    });
+
+    it('returns Testnet for testnet-11 wallet', () => {
+      const wallet = KaspaWallet.fromMnemonic(VECTOR_12_WORD.mnemonic, 'testnet-11');
+      expect(wallet.getAddress()).toMatch(/^kaspatest:/);
+      expect(wallet.getNetworkType()).toBeDefined();
     });
   });
 
@@ -269,6 +278,35 @@ describe('getWallet', () => {
 
     const { getWallet: freshGetWallet } = await import('./wallet.js');
     expect(() => freshGetWallet()).toThrow('Either KASPA_MNEMONIC or KASPA_PRIVATE_KEY environment variable must be set');
+  });
+
+  it('throws error for invalid KASPA_NETWORK', async () => {
+    process.env.KASPA_MNEMONIC = VECTOR_12_WORD.mnemonic;
+    process.env.KASPA_NETWORK = 'invalid-network';
+    delete process.env.KASPA_PRIVATE_KEY;
+
+    const { getWallet: freshGetWallet } = await import('./wallet.js');
+    expect(() => freshGetWallet()).toThrow('Invalid KASPA_NETWORK: "invalid-network"');
+  });
+
+  it('throws error for non-numeric KASPA_ACCOUNT_INDEX', async () => {
+    process.env.KASPA_MNEMONIC = VECTOR_12_WORD.mnemonic;
+    process.env.KASPA_NETWORK = 'mainnet';
+    process.env.KASPA_ACCOUNT_INDEX = 'abc';
+    delete process.env.KASPA_PRIVATE_KEY;
+
+    const { getWallet: freshGetWallet } = await import('./wallet.js');
+    expect(() => freshGetWallet()).toThrow('Invalid KASPA_ACCOUNT_INDEX: "abc"');
+  });
+
+  it('throws error for negative KASPA_ACCOUNT_INDEX', async () => {
+    process.env.KASPA_MNEMONIC = VECTOR_12_WORD.mnemonic;
+    process.env.KASPA_NETWORK = 'mainnet';
+    process.env.KASPA_ACCOUNT_INDEX = '-1';
+    delete process.env.KASPA_PRIVATE_KEY;
+
+    const { getWallet: freshGetWallet } = await import('./wallet.js');
+    expect(() => freshGetWallet()).toThrow('Invalid KASPA_ACCOUNT_INDEX: "-1"');
   });
 
   it('returns cached wallet on subsequent calls', async () => {
