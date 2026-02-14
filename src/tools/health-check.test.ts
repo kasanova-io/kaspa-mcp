@@ -31,7 +31,7 @@ describe('healthCheck', () => {
   it('returns server version', async () => {
     const result = await healthCheck();
 
-    expect(result.version).toBe('0.3.0');
+    expect(result.version).toBe('0.3.1');
   });
 
   it('returns degraded when API is unreachable', async () => {

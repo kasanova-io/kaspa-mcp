@@ -19,7 +19,7 @@ import { wrapToolHandler } from './wrap-tool-handler.js';
 const server = new McpServer(
   {
     name: 'kaspa-mcp',
-    version: '0.3.0',
+    version: '0.3.1',
   },
   {
     capabilities: {
