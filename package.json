@@ -11,6 +11,9 @@
     "dist",
     "vendor"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": "./dist/index.js",
     "./kaspa/setup": "./dist/kaspa/setup.js",
