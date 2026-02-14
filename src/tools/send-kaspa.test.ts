@@ -109,7 +109,8 @@ describe('sendKaspa', () => {
       expect(sendKaspaTransaction).toHaveBeenCalledWith(
         'kaspa:qptest',
         1000000000n,
-        0n
+        0n,
+        undefined
       );
     });
 
@@ -121,7 +122,8 @@ describe('sendKaspa', () => {
       expect(sendKaspaTransaction).toHaveBeenCalledWith(
         'kaspa:qptest',
         150000000n,
-        0n
+        0n,
+        undefined
       );
     });
 
@@ -133,7 +135,8 @@ describe('sendKaspa', () => {
       expect(sendKaspaTransaction).toHaveBeenCalledWith(
         'kaspa:qptest',
         1n,
-        0n
+        0n,
+        undefined
       );
     });
 
@@ -145,7 +148,8 @@ describe('sendKaspa', () => {
       expect(sendKaspaTransaction).toHaveBeenCalledWith(
         'kaspa:qptest',
         112345678n,
-        0n
+        0n,
+        undefined
       );
     });
 
@@ -173,6 +177,12 @@ describe('sendKaspa', () => {
       );
     });
 
+    it('throws error for zero decimal amount', async () => {
+      await expect(sendKaspa({ to: 'kaspa:qptest', amount: '0.00000000' })).rejects.toThrow(
+        'Amount must be greater than zero'
+      );
+    });
+
     it('handles whitespace in amount', async () => {
       vi.mocked(sendKaspaTransaction).mockResolvedValue({ txId: 'tx5', fee: '100' });
 
@@ -181,7 +191,8 @@ describe('sendKaspa', () => {
       expect(sendKaspaTransaction).toHaveBeenCalledWith(
         'kaspa:qptest',
         500000000n,
-        0n
+        0n,
+        undefined
       );
     });
   });
@@ -208,7 +219,8 @@ describe('sendKaspa', () => {
       expect(sendKaspaTransaction).toHaveBeenCalledWith(
         'kaspa:qptest',
         500000000n,
-        1000n
+        1000n,
+        undefined
       );
     });
 
@@ -220,7 +232,8 @@ describe('sendKaspa', () => {
       expect(sendKaspaTransaction).toHaveBeenCalledWith(
         'kaspa:qptest',
         100000000n,
-        0n
+        0n,
+        undefined
       );
     });
 
@@ -229,6 +242,32 @@ describe('sendKaspa', () => {
 
       await expect(sendKaspa({ to: 'kaspa:qptest', amount: '1000000' })).rejects.toThrow(
         'Insufficient balance'
+      );
+    });
+
+    it('passes payload when provided', async () => {
+      vi.mocked(sendKaspaTransaction).mockResolvedValue({ txId: 'txpayload', fee: '100' });
+
+      await sendKaspa({ to: 'kaspa:qptest', amount: '1', payload: 'deadbeef' });
+
+      expect(sendKaspaTransaction).toHaveBeenCalledWith(
+        'kaspa:qptest',
+        100000000n,
+        0n,
+        'deadbeef'
+      );
+    });
+
+    it('does not pass payload when not provided', async () => {
+      vi.mocked(sendKaspaTransaction).mockResolvedValue({ txId: 'txnopayload', fee: '100' });
+
+      await sendKaspa({ to: 'kaspa:qptest', amount: '1' });
+
+      expect(sendKaspaTransaction).toHaveBeenCalledWith(
+        'kaspa:qptest',
+        100000000n,
+        0n,
+        undefined
       );
     });
   });

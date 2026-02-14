@@ -19,10 +19,48 @@ export interface SendResult {
   fee: string;
 }
 
+export const CONNECT_TIMEOUT_MS = 30_000;
+
+function connectWithTimeout(
+  rpc: { connect: (options: Record<string, never>) => Promise<void> },
+  timeoutMs: number
+): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      /* v8 ignore else -- @preserve */
+      if (!settled) {
+        settled = true;
+        reject(new Error('RPC connection timed out'));
+      }
+    }, timeoutMs);
+
+    rpc.connect({}).then(
+      () => {
+        /* v8 ignore else -- @preserve */
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          resolve();
+        }
+      },
+      (err: unknown) => {
+        /* v8 ignore else -- @preserve */
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          reject(err);
+        }
+      }
+    );
+  });
+}
+
 export async function sendKaspa(
   to: string,
   amountSompi: bigint,
-  priorityFee: bigint = 0n
+  priorityFee: bigint = 0n,
+  payload?: string
 ): Promise<SendResult> {
   const wallet = getWallet();
   const senderAddress = wallet.getAddress();
@@ -34,7 +72,9 @@ export async function sendKaspa(
     networkId: wallet.getNetworkId(),
   });
 
-  await rpc.connect({});
+  await connectWithTimeout(rpc, CONNECT_TIMEOUT_MS);
+
+  const submittedTxIds: string[] = [];
 
   try {
     const { isSynced } = await rpc.getServerInfo();
@@ -71,6 +111,7 @@ export async function sendKaspa(
       priorityFee,
       changeAddress: senderAddress,
       networkId: wallet.getNetworkId(),
+      ...(payload ? { payload } : {}),
     });
 
     let pending: kaspa.PendingTransaction | undefined;
@@ -78,7 +119,13 @@ export async function sendKaspa(
 
     while ((pending = await generator.next())) {
       await pending.sign([wallet.getPrivateKey()]);
-      lastTxId = await pending.submit(rpc);
+      const txId = await pending.submit(rpc);
+      submittedTxIds.push(txId);
+      lastTxId = txId;
+    }
+
+    if (!lastTxId) {
+      throw new Error('Transaction generation failed: no transactions were produced');
     }
 
     const summary = generator.summary();
@@ -87,7 +134,19 @@ export async function sendKaspa(
       txId: lastTxId,
       fee: sompiToKaspaString(summary.fees).toString(),
     };
+  } catch (error) {
+    if (submittedTxIds.length > 0) {
+      const detail = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `Transaction partially completed. ${submittedTxIds.length} transaction(s) broadcast: [${submittedTxIds.join(', ')}]. Error: ${detail}`
+      );
+    }
+    throw error;
   } finally {
-    await rpc.disconnect();
+    try {
+      await rpc.disconnect();
+    } catch {
+      // Disconnect failure is not actionable; preserve the original error
+    }
   }
 }

@@ -11,6 +11,7 @@ export interface SendKaspaParams {
   to: string;
   amount: string;
   priorityFee?: number;
+  payload?: string;
 }
 
 export interface SendKaspaResult {
@@ -80,7 +81,8 @@ export async function sendKaspa(params: SendKaspaParams): Promise<SendKaspaResul
   const result = await sendKaspaTransaction(
     params.to,
     amountSompi,
-    BigInt(params.priorityFee || 0)
+    BigInt(params.priorityFee || 0),
+    params.payload
   );
 
   return result;

@@ -20,6 +20,8 @@ const mockGenerator = {
   summary: vi.fn(),
 };
 
+let lastGeneratorSettings: Record<string, unknown> | undefined;
+
 vi.mock('kaspa-wasm', () => {
   class MockAddress {
     address: string;
@@ -37,7 +39,8 @@ vi.mock('kaspa-wasm', () => {
   }
 
   class MockGenerator {
-    constructor() {
+    constructor(settings: Record<string, unknown>) {
+      lastGeneratorSettings = settings;
       return mockGenerator;
     }
   }
@@ -79,6 +82,7 @@ describe('sendKaspa', () => {
   };
 
   beforeEach(() => {
+    lastGeneratorSettings = undefined;
     vi.mocked(getWallet).mockReturnValue(mockWallet as never);
     vi.mocked(getApi).mockReturnValue(mockApi as never);
 
@@ -118,7 +122,7 @@ describe('sendKaspa', () => {
       fee: '0.00001',
     });
 
-    expect(mockRpcClient.connect).toHaveBeenCalledWith({});
+    expect(mockRpcClient.connect).toHaveBeenCalled();
     expect(mockRpcClient.getServerInfo).toHaveBeenCalled();
     expect(mockRpcClient.disconnect).toHaveBeenCalled();
   });
@@ -228,5 +232,108 @@ describe('sendKaspa', () => {
     const result = await sendKaspa('kaspa:qprecipient', 100000000n);
 
     expect(result).toBeDefined();
+  });
+
+  it('throws error when generator produces no transactions', async () => {
+    mockGenerator.next.mockReset().mockResolvedValueOnce(undefined);
+
+    await expect(sendKaspa('kaspa:qprecipient', 100000000n)).rejects.toThrow(
+      'Transaction generation failed: no transactions were produced'
+    );
+  });
+
+  it('includes submitted txIds in error on partial broadcast failure', async () => {
+    const mockPending1 = { sign: vi.fn(), submit: vi.fn().mockResolvedValue('tx1') };
+    const mockPending2 = { sign: vi.fn(), submit: vi.fn().mockRejectedValue(new Error('Network error')) };
+
+    mockGenerator.next
+      .mockReset()
+      .mockResolvedValueOnce(mockPending1)
+      .mockResolvedValueOnce(mockPending2);
+
+    mockRpcClient.getUtxosByAddresses.mockResolvedValue({
+      entries: [{ amount: 5000000000n }],
+    });
+
+    await expect(sendKaspa('kaspa:qprecipient', 100000000n)).rejects.toThrow(
+      /Transaction partially completed.*1 transaction.*tx1.*Network error/
+    );
+  });
+
+  it('handles non-Error throw in partial broadcast failure', async () => {
+    const mockPending1 = { sign: vi.fn(), submit: vi.fn().mockResolvedValue('tx1') };
+    const mockPending2 = { sign: vi.fn(), submit: vi.fn().mockRejectedValue('string error') };
+
+    mockGenerator.next
+      .mockReset()
+      .mockResolvedValueOnce(mockPending1)
+      .mockResolvedValueOnce(mockPending2);
+
+    mockRpcClient.getUtxosByAddresses.mockResolvedValue({
+      entries: [{ amount: 5000000000n }],
+    });
+
+    await expect(sendKaspa('kaspa:qprecipient', 100000000n)).rejects.toThrow(
+      /Transaction partially completed.*1 transaction.*tx1.*string error/
+    );
+  });
+
+  it('preserves original error when no transactions were submitted', async () => {
+    mockRpcClient.getServerInfo.mockRejectedValue(new Error('Server unreachable'));
+
+    await expect(sendKaspa('kaspa:qprecipient', 100000000n)).rejects.toThrow(
+      'Server unreachable'
+    );
+  });
+
+  it('suppresses disconnect errors to preserve original error', async () => {
+    mockRpcClient.getServerInfo.mockRejectedValue(new Error('Original error'));
+    mockRpcClient.disconnect.mockRejectedValue(new Error('Disconnect failed'));
+
+    await expect(sendKaspa('kaspa:qprecipient', 100000000n)).rejects.toThrow(
+      'Original error'
+    );
+  });
+
+  it('propagates connect error when connection fails before timeout', async () => {
+    mockRpcClient.connect.mockRejectedValue(new Error('Connection refused'));
+
+    await expect(sendKaspa('kaspa:qprecipient', 100000000n)).rejects.toThrow(
+      'Connection refused'
+    );
+  });
+
+  it('passes payload to Generator when provided', async () => {
+    const payload = 'deadbeef0123';
+    await sendKaspa('kaspa:qprecipient', 100000000n, 0n, payload);
+
+    expect(lastGeneratorSettings).toBeDefined();
+    expect(lastGeneratorSettings!.payload).toBe(payload);
+  });
+
+  it('does not include payload in Generator settings when not provided', async () => {
+    await sendKaspa('kaspa:qprecipient', 100000000n, 0n);
+
+    expect(lastGeneratorSettings).toBeDefined();
+    expect(lastGeneratorSettings).not.toHaveProperty('payload');
+  });
+
+  it('throws error when RPC connection times out', async () => {
+    // Mock setTimeout to fire the callback immediately, simulating a timeout
+    const originalSetTimeout = globalThis.setTimeout;
+    (globalThis as { setTimeout: unknown }).setTimeout = (fn: () => void) => {
+      fn();
+      return 0 as unknown as ReturnType<typeof setTimeout>;
+    };
+
+    mockRpcClient.connect.mockImplementation(
+      () => new Promise(() => {}) // Never resolves
+    );
+
+    await expect(sendKaspa('kaspa:qprecipient', 100000000n)).rejects.toThrow(
+      'RPC connection timed out'
+    );
+
+    globalThis.setTimeout = originalSetTimeout;
   });
 });

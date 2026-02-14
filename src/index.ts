@@ -13,26 +13,8 @@ import { getFeeEstimate } from './tools/get-fee-estimate.js';
 import { sendKaspa } from './tools/send-kaspa.js';
 import { getTransaction } from './tools/get-transaction.js';
 import { generateMnemonic } from './tools/generate-mnemonic.js';
-
-type ToolResponse = {
-  content: Array<{ type: 'text'; text: string }>;
-  isError?: boolean;
-};
-
-async function wrapToolHandler<T>(handler: () => Promise<T>): Promise<ToolResponse> {
-  try {
-    const result = await handler();
-    return {
-      content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-    };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    return {
-      content: [{ type: 'text', text: `Error: ${errorMessage}` }],
-      isError: true,
-    };
-  }
-}
+import { healthCheck } from './tools/health-check.js';
+import { wrapToolHandler } from './wrap-tool-handler.js';
 
 const server = new McpServer(
   {
@@ -74,6 +56,7 @@ server.tool(
     to: z.string().describe('Recipient Kaspa address'),
     amount: z.string().describe('Amount to send in KAS'),
     priorityFee: z.number().optional().describe('Priority fee in sompi (optional)'),
+    payload: z.string().optional().describe('Hex-encoded transaction payload (optional)'),
   },
   async (params) =>
     wrapToolHandler(() =>
@@ -81,6 +64,7 @@ server.tool(
         to: params.to,
         amount: params.amount,
         priorityFee: params.priorityFee,
+        payload: params.payload,
       })
     )
 );
@@ -108,6 +92,12 @@ server.tool(
         network: params.network,
       })
     )
+);
+
+server.tool(
+  'health_check',
+  'Check server health: wallet config, address derivation, and API connectivity',
+  async () => wrapToolHandler(() => healthCheck())
 );
 
 async function main() {
