@@ -10,6 +10,15 @@
   "files": [
     "dist"
   ],
+  "exports": {
+    ".": "./dist/index.js",
+    "./kaspa/setup": "./dist/kaspa/setup.js",
+    "./kaspa/wallet": "./dist/kaspa/wallet.js",
+    "./kaspa/api": "./dist/kaspa/api.js",
+    "./kaspa/transaction": "./dist/kaspa/transaction.js",
+    "./wrap-tool-handler": "./dist/wrap-tool-handler.js",
+    "./types": "./dist/types.js"
+  },
   "license": "ISC",
   "scripts": {
     "build": "tsc",
